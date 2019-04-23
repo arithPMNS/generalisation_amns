@@ -12,11 +12,10 @@ The C code generated will be in the subdirectory 'c_codes' of this subdirectory 
 
 The subdirectory 'amns_for_our_tests' contains the C codes of the AMNS we used to build the tables of performances in the article.
 In this subdirectory, files are named as follow : 'p'+pBitSize_num1__n_lambda__num2; n and lambda are some parameters of the AMNS. num1 and num2 are irrelevant numbers we used to distinguish AMNS in the generation process.
-Notice that in each subdirectory of this subdirectory, there is a file 'timing.txt' which contains results we used to build the tables of performances in the article.
-Also, this subdirectory contains more than 1600 AMNS, so GitHub will not show all of them. Therefore, you should download the subdirectory to see all these AMNS.
+Notice that in each subdirectory of this subdirectory, there is a file 'timing.txt' which contains results we used to build the tables of performances in the article. This file shows computation time of modular multiplications using AMNS, GNU MP mpz_t and OPENSSL BIGNUM.
+The subdirectory 'amns_vs_gmpLowLevel' is identical to the subdirectory 'amns_for_our_tests' except that it compares AMNS to GNU MP low level functions for modular multiplications. GNU MP low level functions are faster than the high level functions provided when using the mpz_t type.
+Also, these subdirectories contain more than 1600 AMNS, so GitHub will not show all of them. Therefore, you should download these subdirectories to see all these AMNS.
 
-
-The subdirectory 'nist_prime_p521' contains AMNS c code for the recommended NIST prime 'p = 2^521 - 1' for elliptic curve cryptography. The file 'timing.txt' contains results we presented in the article.
 
 
 Note : To use the AMNS generator and the C code generator, you will need SageMath library which can be found here: http://www.sagemath.org/
