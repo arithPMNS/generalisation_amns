@@ -1,0 +1,10 @@
+224 6 3188722020 6058021085 0.526364
+
+nbiter = 33554432
+
+
+time using gmp_low	= 6058021085 nanoseconds
+
+time using amns prod	= 3188722020 nanoseconds
+
+ratio			= 0.526364

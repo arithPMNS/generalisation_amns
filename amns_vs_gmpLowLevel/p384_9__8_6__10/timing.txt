@@ -1,0 +1,10 @@
+384 8 5725946206 7331782153 0.780976
+
+nbiter = 33554432
+
+
+time using gmp_low	= 7331782153 nanoseconds
+
+time using amns prod	= 5725946206 nanoseconds
+
+ratio			= 0.780976

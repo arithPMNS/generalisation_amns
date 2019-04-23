@@ -1,0 +1,10 @@
+521 11 10837772714 13254460689 0.817670
+
+nbiter = 33554432
+
+
+time using gmp_low	= 13254460689 nanoseconds
+
+time using amns prod	= 10837772714 nanoseconds
+
+ratio			= 0.817670
