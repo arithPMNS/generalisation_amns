@@ -9,40 +9,32 @@ void init_data(){
 	mpz_init (modul_p);
 
 
-	mpz_set_str (modul_p, "113556790634660157267263905667270152901197793648196242794250351611737421945657", 10);
+	mpz_set_str (modul_p, "78724239600625480298692691298392864706707889970105486261087202076552731179457", 10);
 
-	mpz_set_str (gama_pow[0], "21138829655901097943222712296378255075934887833046131852578355841495498583960", 10);
+	mpz_set_str (gama_pow[0], "67121246142329733953157532273927750633628991646367117191031794526296140945147", 10);
 	for(i=1; i<POLY_DEG; i++){
 		mpz_mul (gama_pow[i], gama_pow[i-1], gama_pow[0]);
 		mpz_mod (gama_pow[i], gama_pow[i], modul_p);
 	}
 
-	//~ Note : lambda = 2 (see : modular multiplication in 'add_mult_poly.c').
-
-	amns_rho = 1L << RHO_LOG2;
-
 	//~ IMPORTANT : initialisations above must be done before those below.
-	compute_rho_pows();
+	compute_polys_P();
 }
 
 
-//~ computes representatives of powers of 'phi' in the AMNS.
-void compute_rho_pows(){
+//~ computes representations of the polynomials P, used for conversion into the AMNS
+void compute_polys_P(){
 	int i, l;
-	int64_t tmp_rho[NB_COEFF];
+	int64_t tmp_poly[NB_COEFF];
 
-	for(i=0; i<NB_COEFF; i++)
-		tmp_rho[i] = rho_rep[i];
+	//~ computation of a representation of 'phi*rho'
+	from_mont_domain(tmp_poly, poly_P1);
 
-	//~ computation of a representative of 'rho'
-	from_mont_domain(rho_rep, rho_rep);
-
-	//~ computation of representatives of (rho)^i (for i=2,3,...)
 	l = NB_COEFF - 2;
 	if (l > 0){
-		mult_mod_poly(RHO_POWS[0], rho_rep, tmp_rho);
+		mult_mod_poly(polys_P[0], poly_P1, tmp_poly);
 		for(i=1; i<l; i++)
-			mult_mod_poly(RHO_POWS[i], RHO_POWS[i-1], tmp_rho);
+			mult_mod_poly(polys_P[i], polys_P[i-1], tmp_poly);
 	}
 }
 

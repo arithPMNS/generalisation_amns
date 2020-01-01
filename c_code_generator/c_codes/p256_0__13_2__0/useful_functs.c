@@ -2,43 +2,41 @@
 
 
 //~ Assumes allocation already done for 'rop'.
-//~ IMPORTANT : convertion to montgomery domain will be done here'
+//~ IMPORTANT : convertion to montgomery domain will be done here
 void from_int_to_amns(int *rop, mpz_t op){
-	int i, j;
+	int i;
 	mpz_t tmp;
 	uint mask;
 	llong tmp_poly[NB_COEFF];
 	llong tmp_sum[NB_COEFF];
 
-	mpz_init(tmp);
+	mpz_init_set(tmp, op);
 
 	for(i=0; i<NB_COEFF; i++){
 		rop[i] = 0;
 		tmp_sum[i] = 0;
 	}
 
-	if(op->_mp_size == 0)
+	if(tmp->_mp_size == 0)
 		return;
 
-	//~ for convertion to montgomery domain (for AMNS)
-	mpz_mul_2exp (tmp, op, 2*WORD_SIZE);
-	mpz_mod (tmp, tmp, modul_p);
+	mask = (1UL << RHO_LOG2) - 1;
 
-	mask = amns_rho - 1;
+	scalar_mult_lpoly(tmp_poly, poly_P0, (tmp->_mp_d[0]) & mask);
+	add_lpoly(tmp_sum, tmp_sum, tmp_poly);
+
+	mpz_tdiv_q_2exp (tmp, tmp, RHO_LOG2);
+
 	if(tmp->_mp_size){
-		tmp_sum[0] = (tmp->_mp_d[0]) & mask;
+		scalar_mult_lpoly(tmp_poly, poly_P1, (tmp->_mp_d[0]) & mask);
+		add_lpoly(tmp_sum, tmp_sum, tmp_poly);
+
 		mpz_tdiv_q_2exp (tmp, tmp, RHO_LOG2);
-
-		if(tmp->_mp_size){
-			scalar_mult_lpoly(tmp_poly, rho_rep, (tmp->_mp_d[0]) & mask);
-			add_lpoly(tmp_sum, tmp_sum, tmp_poly);
-
-			mpz_tdiv_q_2exp (tmp, tmp, RHO_LOG2);
-		}
 	}
-	j = 0;
+
+	i = 0;
 	while(tmp->_mp_size){
-		scalar_mult_lpoly(tmp_poly, RHO_POWS[j++], (tmp->_mp_d[0]) & mask);
+		scalar_mult_lpoly(tmp_poly, polys_P[i++], (tmp->_mp_d[0]) & mask);
 		add_lpoly(tmp_sum, tmp_sum, tmp_poly);
 
 		mpz_tdiv_q_2exp (tmp, tmp, RHO_LOG2);
@@ -85,7 +83,7 @@ void from_mont_domain(int *rop, int *op){
 
 //~ return a positive value if pa > pb, zero if pa = pb, or a negative value if pa < pb.
 //~ Important : evaluation is done using the corresponding integers modulo 'p'.
-int cmp_polys(int *pa, int *pb){
+int cmp_poly_evals(int *pa, int *pb){
 	int rep;
 	mpz_t a, b;
 	mpz_inits (a, b, NULL);
@@ -119,8 +117,7 @@ void print_element(int *poly){
 	int i;
 	printf("[");
 	for (i=0; i<POLY_DEG; i++)
-		printf("%ld, ", poly[i]);
-	printf("%ld]", poly[POLY_DEG]);
-	printf("\n");
+		printf("%2ld, ", poly[i]);
+	printf("%2ld]", poly[POLY_DEG]);
 }
 

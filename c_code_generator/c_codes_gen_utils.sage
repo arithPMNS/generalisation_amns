@@ -116,6 +116,49 @@ def build_prod_code(n, c, big_int):
 
 #~ -----------------------------------------------------------------------------------------------
 
+
+def build_exactRedCoeff_interProd_code(n, lambd, big_int):
+	
+	c_sign = get_sign(lambd)
+	abs_c = abs(lambd)
+	abs_c_is_2pow = is_power_of_two(abs_c)
+	
+	tmp_part1 = ['']*n
+	tmp_part2 = ['']*(n-1)
+	
+	for i in range(n):
+		tmp_part1[i] = 'tmp['+str(i)+'] ='
+	
+	for i in range(n):
+		for j in range(n):
+			pos = i+j
+			if pos < n :
+				tmp_part1[pos]+= ' (' + big_int + ')rop['+ str(i) + '] * poly_P0['+ str(j) + '] +'
+			else:
+				tmp_part2[pos%n]+= ' (' + big_int + ')rop['+ str(i) + '] * poly_P0['+ str(j) + '] +'
+	
+	for i in range(n-1):
+		tmp_part1[i] = tmp_part1[i][:-2]
+		if abs_c == 1 :
+			tmp_part2[i] = ' ' + c_sign + ' (' + tmp_part2[i][1:-2] +')'
+		elif abs_c_is_2pow :
+			tmp_part2[i] = ' ' + c_sign + ' ((' + tmp_part2[i][1:-2] +') << ' + str(int(log(abs_c, 2))) + ')'
+		else :
+			tmp_part2[i] = ' ' + c_sign + ' ((' + tmp_part2[i][1:-2] +') * ' + str(abs_c) + ')'
+	
+	tmp_part1[n-1] = tmp_part1[n-1][:-2]
+	
+	result = '\n'
+	for i in range(n-1):
+		result += "	" + tmp_part1[i] + tmp_part2[i] + ';\n'
+	result +=  "	" + tmp_part1[n-1] + ';\n'
+	
+	return result
+
+
+
+#~ -----------------------------------------------------------------------------------------------
+
 def build_red_int_code(unsigned_small_int, big_int, n, mont_phi, c, lambda_mod_phi, red_int_coeff, neg_inv_ri_rep_coeff):
 	
 	result = "	//~ computation of : op*neg_inv_ri_rep_coeff mod((X^n - c), mont_phi)\n"
@@ -272,6 +315,7 @@ def build_redInt_lastStep_prod_code(n):
 		result += tmp
 	
 	return result
+
 
 
 

@@ -49,9 +49,9 @@ def has_good_shape(n):
 #~ ----------------------------------------------------------------------------------------------
 
 def compute_neg_inv_ri_poly(n, phi, ri_poly, ext_poly):
+	
 	R.<x> = QQ[]
-	P = ZZ.quo(phi)
-	PP.<y> = P[]
+	P = ZZ.quo(phi); PP.<y> = P[]
 
 	e = R(ext_poly) 
 	m = R(ri_poly)
@@ -59,39 +59,32 @@ def compute_neg_inv_ri_poly(n, phi, ri_poly, ext_poly):
 
 	return (-imy)
 
-#~ returns a representative of 'op/phi'
+#~ returns a representation of 'op/phi'
 def amns_red_int(op, ext_pol, ri_poly, neg_inv_ri, R, PP, phi):
 	q = (PP(op)*neg_inv_ri).mod(PP(ext_pol))
 	r0 = op + (R(q)*ri_poly).mod(ext_pol)
 	return (r0/phi)
 
-#~ returns a representative of '(op1*op2)/phi'
+#~ returns a representation of '(op1*op2)/phi'
 def amns_mont_mult(op1, op2, ext_pol, ri_poly, neg_inv_ri, R, PP, phi):
-	#~ op1 = R(op1)
-	#~ op2 = R(op2)
-	#~ ext_pol = R(ext_pol)
-	#~ ri_poly = R(ri_poly)
-	#~ neg_inv_ri = PP(neg_inv_ri)
 	
 	c = (op1*op2).mod(ext_pol)
 	q = (PP(c)*neg_inv_ri).mod(PP(ext_pol))
 	r0 = c + (R(q)*ri_poly).mod(ext_pol)
-	
 	return (r0/phi)
 
-#~ returns a representative of 'phi*val'
-#~ we use here method 2 of conversion to AMNS
+#~ Uses method 2 of conversion to AMNS, to compute a representation of 'val'
 def compute_rep_in_amns(val, n, p, gmm, phi, ext_pol, ri_poly, neg_inv_ri, rho):
 	F = GF(p)
 	R.<x> = QQ[]
 	P = ZZ.quo(phi); PP.<y> = P[]
 	
-	tmp_rep = Integer(F(val * phi.powermod(n, p)))
+	tmp_rep = Integer(F(val * phi.powermod(n-1, p)))
 	rep = amns_red_int(R(tmp_rep), ext_pol, ri_poly, neg_inv_ri, R, PP, phi)
 	for i in xrange(n-2):
 		rep = amns_red_int(rep, ext_pol, ri_poly, neg_inv_ri, R, PP, phi)
 	
-	if F(rep(gmm)) != F(val*phi) :
+	if F(rep(gmm)) != F(val) :
 		print("ERROR : Bad conversion !!!")
 	
 	if rep.norm(infinity) >= rho :
@@ -114,6 +107,7 @@ def nth_root_computation(F, n, lambd, find_all_nthroot, queue):
 	finally:
 		queue.put(res)
 
+
 #~ tries to find a nth_root of 'F(lambd)' within 'max_duration' seconds
 def find_nth_root_with_timeout(F, n, lambd, nth_root_max_duration_checks, find_all_nthroot):
 	res = []
@@ -128,8 +122,10 @@ def find_nth_root_with_timeout(F, n, lambd, nth_root_max_duration_checks, find_a
 		#~ print ("Timed out!")
 	return res
 
+
+
 #~ checks if 'lambd' produces AMNS and returns it, if so. 
-def check_lambda(word_size, F, p, n, phi, lambd, nth_root_max_duration_checks, find_all_nthroot) :
+def check_lambda(word_size, F, p, n, mont_phi, lambd, nth_root_max_duration_checks, find_all_nthroot) :
 	
 	gmms = find_nth_root_with_timeout(F, n, lambd, nth_root_max_duration_checks, find_all_nthroot)
 	
@@ -140,23 +136,32 @@ def check_lambda(word_size, F, p, n, phi, lambd, nth_root_max_duration_checks, f
 			continue; # not a useful nth-root
 		
 		if (lambd%2) == 0 :
-			ri = find_valid_vect_even_lambda(p, n, gmm)
+			redIntPol_coeffs = find_valid_vect_even_lambda(p, n, gmm)
 		else :
-			ri = find_valid_vect_odd_lambda(p, n, gmm)
+			redIntPol_coeffs = find_valid_vect_odd_lambda(p, n, gmm)
 		
-		if ri != [] : # it should always be the case
-			(rho_log2, nb_max_add) = compute_rho_min_log2_with_nb_add_max(word_size, phi, p, n, lambd, ri)
+		if redIntPol_coeffs != [] : # it should always be the case
+			
+			(rhoUp_log2, nb_max_add) = compute_rhoUp_log2_and_nb_add_max(word_size, n, lambd, mont_phi, redIntPol_coeffs)
+			
 			if nb_max_add != -1 :
-				rho = 1 << rho_log2
-				R.<x> = QQ[]
-				ri = list(ri)
-				ri_poly = R(ri)
-				ext_pol = R(x**n - lambd)
-				neg_inv_ri = compute_neg_inv_ri_poly(n, phi, ri_poly, ext_pol)
-				phi__rho_rep = compute_rep_in_amns(rho, n, p, gmm, phi, ext_pol, ri_poly, neg_inv_ri, rho)
 				
-				amns_list.append([nb_max_add, n, lambd, rho_log2, gmm, ri, list(phi__rho_rep), list(neg_inv_ri)])
+				rhoUp = 1 << rhoUp_log2
+				
+				R.<x> = QQ[]
+				redExtPol = R(x**n - lambd)
+				redIntPol = R(redIntPol_coeffs)
+				negInv_redIntPol = compute_neg_inv_ri_poly(n, mont_phi, redIntPol, redExtPol)
+				
+				phi2 = mont_phi**2
+				conv_poly_P0 = compute_rep_in_amns(phi2, n, p, gmm, mont_phi, redExtPol, redIntPol, negInv_redIntPol, rhoUp)
+				conv_poly_P1 = compute_rep_in_amns(phi2*rhoUp, n, p, gmm, mont_phi, redExtPol, redIntPol, negInv_redIntPol, rhoUp)
+				
+				amns_list.append([nb_max_add, n, list(redExtPol), rhoUp_log2, gmm, redIntPol_coeffs, list(negInv_redIntPol), list(conv_poly_P0), list(conv_poly_P1)])
+	
 	return amns_list
+
+
 
 # checks all integers (with good shape) in {-lamb_max, ..., lamb_max}\{0}
 def build_amns_candidates_for_n(word_size, F, p, n, phi, lamb_max, nth_root_max_duration_checks, find_all_nthroot):
@@ -176,6 +181,8 @@ def build_amns_candidates_for_n(word_size, F, p, n, phi, lamb_max, nth_root_max_
 	
 	return amns_cands
 
+
+
 def generate_amns_candidates_with_n_min_max(word_size, prime_module, n_min, n_max, lamb_max, nth_root_max_duration_checks, find_all_nthroot):
 	mont_phi = 1 << word_size  # will be used for multiplications in AMNS
 	F = GF(prime_module)
@@ -185,4 +192,24 @@ def generate_amns_candidates_with_n_min_max(word_size, prime_module, n_min, n_ma
 		if cand != [] :
 			amns_list.append(cand)
 	return flatten(amns_list, max_level=2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

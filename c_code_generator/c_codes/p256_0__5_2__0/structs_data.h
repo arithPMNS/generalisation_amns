@@ -8,25 +8,19 @@
 #define NB_COEFF 5
 #define NB_ADD_MAX 4
 
-#define RHO_LOG2 55
-//~ We will take : rho = 1 << RHO_LOG2.
-
+#define RHO_LOG2 55  // rho = 1 << RHO_LOG2.
 
 typedef __int128 int128;
-typedef unsigned __int128 uint128;
 
+//~ representations of the polynomials P0 and P1, used for conversion into the AMNS
+int64_t poly_P0[NB_COEFF] = {2417154222381215, 1717597245556995, 2230246623216472, 1342091056533950, 1871634882583606};
+int64_t poly_P1[NB_COEFF] = {3124006495515283, 1604926006855910, 2387750801860216, 1034119891388689, 1305308913034411};
 
-static uint64_t amns_rho;
+//~ representations of polynomials Pi, for i=2,...,n-1
+int64_t polys_P[(NB_COEFF - 2)][NB_COEFF];
 
-//~ will contain a representative of 'rho' in the amns
-//~ important : this initial value is that of 'rho*phi'; correct value will be put during initialisation step
-static int64_t rho_rep[NB_COEFF] = {-5889130220341370, -4048668363131559, -2345436401269775, -821621600159061, -1839930390478987};
-
-//~ representatives of (RHO)^i (for i=2,4,...) in the amns (for convertions : int to amns)
-static int64_t RHO_POWS[(NB_COEFF - 2)][NB_COEFF];
-
-static mpz_t modul_p;
-static mpz_t gama_pow[POLY_DEG];
+mpz_t modul_p;
+mpz_t gama_pow[POLY_DEG];
 
 #endif
 

@@ -6,7 +6,7 @@ void init_data();
 
 void free_data();
 
-void compute_rho_pows();
+void compute_polys_P();
 
 #endif
 

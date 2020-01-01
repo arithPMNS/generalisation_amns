@@ -15,6 +15,7 @@ def get_smallest_vect(m):
 	return list(sml_vect)
 
 #~ -------------- Case where : E(X) = X^n - lambda, with abs(lambda) even ------------------------------
+
 #~ note : each line corresponds to a poly of the form : a0 + a1.X + ... + a_{n-1}.X^{n-1}
 def build_lattice_base_even_lambda(p, n, gmm):
 	b = []
@@ -37,21 +38,18 @@ def get_valid_elements_list_even_lambda(m):
 
 #~ return a small valid vect
 def find_valid_vect_even_lambda(p, n, gmm):
+	
 	m = build_lattice_base_even_lambda(p, n, gmm)
 	
-	
-	#~ for el in m:
-		#~ print(el)
-		#~ print
-	#~ print
-	
-	
 	vld_elmts = get_valid_elements_list_even_lambda(m)
+	
 	if vld_elmts == [] :
 		print("WARNING : even lambda, no valid poly found; this shouldn't happen !!!")
+	
 	return get_smallest_vect(vld_elmts)
 
 #~ -------------- Case where : E(X) = X^n - lambda, with abs(lambda) odd ------------------------------
+
 #~ note : each line corresponds to a poly of the form : a0 + a1.X + ... + a_{n-1}.X^{n-1}
 #~ note : 'p' is supposed odd
 def build_lattice_base_odd_lambda(p, n, gmm):
@@ -92,18 +90,15 @@ def check_vect_odd_lambda(vect, e2, R):
 
 #~ return a small valid vect
 def find_valid_vect_odd_lambda(p, n, gmm):
+	
 	R.<x> = GF(2)[]
+	
 	e2 = R(x**n - 1)
-	vld_vects = []
+	
 	mm = build_lattice_base_odd_lambda(p, n, gmm)
 	
-	
-	#~ for el in mm:
-		#~ print(el)
-		#~ print
-	#~ print
-	
 	vmax = 1 << n
+	vld_vects = []
 	for k in range(1, vmax): 
 		k_vt = build_weight_vect(k, n)
 		vsum = 0*mm[0] # to obtain the good type of vector
@@ -111,46 +106,73 @@ def find_valid_vect_odd_lambda(p, n, gmm):
 			vsum += k_vt[i]*mm[i]
 		if check_vect_odd_lambda(vsum, e2, R) :
 			vld_vects.append(list(vsum))
+	
 	if vld_vects != [] :
 		return get_smallest_vect(vld_vects)
+	
 	print("WARNING : odd lambda, no valid poly found; this shouldn't happen !!!")
+	
 	return []
 
 
 #~ ---------------------------------------------------------------------------------
 
-#~ assumes : E(X) = X^n - lambd
-#~ note : we assume that elements coeffs can be negatifs in the AMNS, so one bit will be allocated for that.
-def compute_rho_min_log2_with_nb_add_max(word_size, phi, p, n, lambd, ri_poly):
-
-	nm_inf = get_inf_norm(ri_poly)
-	rho = 2 * abs(lambd) * n * nm_inf  # codition for the montgomery-like reduction to be correct
-	if rho > (1 << (word_size - 1)): # 'rho' is too big
-		return (0, -1)
+#~ note: we assume that elements coeffs can be negatives in the AMNS, so one bit will be allocated for that.
+#~ NOTE : 'rho' is taken as a power of two
+def compute_rhoUp_log2_and_nb_add_max(word_size, n, lambd, mont_phi, redIntPol_coeffs):
 	
-	pw1 = ceil(numerical_approx(log(rho, 2)))
+	nm_inf = get_inf_norm(redIntPol_coeffs)
 	
-	pw2 = ceil(ceil(numerical_approx(log(p, 2)))/n) - 1 # we must be sure that the AMNS can represent all elements modulo p, -1 because elements signed.
+	if nm_inf == 0: # should not happen, but ...
+		return (0,-1)
 	
-	pw  = max(pw1, pw2)
-	rho = 1 << pw  # we want 'rho' to be a power of two
+	w = 1 + (n-1)*abs(lambd)
+	
+	rho_init = 2 * w * nm_inf
+	rhoUp_log2 = ceil(log(rho_init, 2))
+	rho = 1 << rhoUp_log2
+	tmp_phi = 2 * w * rho
+	
+	coeff_ubound = 1 << (word_size - 1) # one bit is allocated for sign
+	prod_acc_ubound = 1 << (2*word_size - 1) # one bit is also allocated for sign
+	
+	if (rho > coeff_ubound) or  (tmp_phi > mont_phi):
+		return (0,-1) # no need to continue
 	
 	nb_max_add = -1
-	ok = True
-	while ok :
+	while True :  
+		
+		# note: this loop is ended when 'nb_max_add' becomes too big
+		# note: returns always 'nb_max_add-1' because the loop ended when 'nb_max_add' is too big.
+		
 		nb_max_add += 1
-		tmp = (nb_max_add+1)*(rho-1)
-		if (1 << (word_size - 1)) <= tmp :
-			ok = False # here, 'rho' (and/or 'nb_max_add') is too big for 'word_size', (one bit is used for sign)
 		
-		prod_acc = nm_inf*(phi-1) + tmp**2
-		if (1 << (2*word_size - 1)) <= (prod_acc * (1 + (n-1)*abs(lambd))) :
-			ok = False # here, 'rho' (and/or 'nb_max_add') is also too big for 'word_size' (because multiplication result coeffs will be too big)
+		c_maxVal = (nb_max_add + 1)*(rho - 1)
+		if coeff_ubound <= c_maxVal :
+			return (rhoUp_log2, (nb_max_add-1)) # here, 'rho' (and/or 'nb_max_add') is too big for 'word_size', (one bit is used for sign)
 		
-		if phi < (2 * abs(lambd) * n * rho * (nb_max_add+1)**2) :
-			ok = False # here, 'rho' (and/or 'nb_max_add') is too big for the montgomery-like reduction to be correct
+		add_effect_on_phi = (nb_max_add + 1)**2
+		if mont_phi < (add_effect_on_phi * tmp_phi) :
+			return (rhoUp_log2, (nb_max_add-1)) # here, 'rho' (and/or 'nb_max_add') is too big for the montgomery-like reduction to be correct
+		
+		prod_infNorm_max = w * (nm_inf*(mont_phi-1) + c_maxVal)
+		if prod_acc_ubound <= prod_infNorm_max :
+			return (rhoUp_log2, (nb_max_add-1)) 
 	
-	return (pw, (nb_max_add-1))
+	return;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

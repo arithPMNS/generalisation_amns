@@ -81,7 +81,7 @@ int main(void){
 	diff5 = BILLION * (end5.tv_sec - start5.tv_sec) + (end5.tv_nsec - start5.tv_nsec);
 
 
-	nbiter = 1 << 25;
+	nbiter = 1 << 15;
 
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID , &start1);
@@ -128,9 +128,7 @@ int main(void){
 	diff5 += BILLION * (end5.tv_sec - start5.tv_sec) + (end5.tv_nsec - start5.tv_nsec);
 
 
-	printf("%lu %d %lu %lu %lu %lu\n\n", mpz_sizeinbase (modul_p, 2), NB_COEFF, (diff2+diff3), (diff4+diff5), diff6, diff1);
-
-	printf("nbiter = %d\n\n", nbiter);
+	printf("\nnbiter = %d\n\n", nbiter);
 	gmp_printf("A       : %Zd\n", E);
 	gmp_printf("B       : %Zd\n\n", B);
 	gmp_printf("r_gmp   : %Zd\n", A);
@@ -142,7 +140,7 @@ int main(void){
 	printf("\ntime using amns prod		= %lu nanoseconds\n", diff2);
 	printf("total time using amns prod	= %lu nanoseconds\n", (diff2+diff3));
 	printf("\ntime using openssl mont		= %lu nanoseconds\n", diff4);
-	printf("total time using openssl mont	= %lu nanoseconds\n", (diff4+diff5));
+	printf("total time using openssl mont	= %lu nanoseconds\n\n", (diff4+diff5));
 
 
 	mpz_clears (A, B, C, E, NULL);
