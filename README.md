@@ -3,7 +3,7 @@ This repository contains codes to generate Adapted Modular Number Systems (AMNS)
 It also contains a C code generator for arithmetic (and conversion) operations using AMNS.
 
 
-The subdirectory 'amns_generator' contains codes to generate AMNS given a prime and some parameters; see an example in file 'gen_example.py' of this subdirectory. NOTE: Here, AMNS generation is done according to the implementation strategy mentioned at the end of section 5.1 of the article.
+The subdirectory 'amns_generator' contains codes to generate AMNS given a prime and some parameters; see an example in file 'gen_example.py' of this subdirectory. NOTE: Here, AMNS generation is done according to the implementation strategy mentioned at the end of section 5.1 of the article 'Efficient modular operations using the Adapted Modular Number System'; DOI: 10.1007/s13389-019-00221-7
 
 
 The subdirectory 'c_code_generator' contains codes to generate a C code from an AMNS generated using codes in the subdirectory 'amns_generator'. This C code allows to perform arithmetic (and conversion) operations efficiently; see an example in file 'EXAMPLE.py' of this subdirectory.          
