@@ -157,7 +157,7 @@ def compute_rhoUp_log2_and_nb_add_max(word_size, n, lambd, mont_phi, redIntPol_c
 		
 		prod_infNorm_max = w * (nm_inf*(mont_phi-1) + c_maxVal)
 		if prod_acc_ubound <= prod_infNorm_max :
-			return (rhoUp_log2, (nb_max_add-1)) 
+			return (rhoUp_log2, (nb_max_add-1)) # here, 'rho' (and/or 'nb_max_add') is also too big for 'word_size' (because multiplication result coeffs will be too big)
 	
 	return;
 
