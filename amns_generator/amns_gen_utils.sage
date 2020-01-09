@@ -143,7 +143,7 @@ def compute_rhoUp_log2_and_nb_add_max(word_size, n, lambd, mont_phi, redIntPol_c
 	while True :  
 		
 		# note: this loop is ended when 'nb_max_add' becomes too big
-		# note: returns always 'nb_max_add-1' because the loop ended when 'nb_max_add' is too big.
+		# note: returns always 'nb_max_add-1' because the loop ended when 'nb_max_add' was too big.
 		
 		nb_max_add += 1
 		
