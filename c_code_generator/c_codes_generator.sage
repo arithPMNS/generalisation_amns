@@ -46,6 +46,7 @@ def gen_c_codes(p, amns_data, target_archi_info, p_num, amns_num):
 	conv_P0 = amns_data[7]
 	conv_P1 = amns_data[8]
 	
+	p = Integer(p)
 	
 	dir_name = 'p' + str(p.nbits()) + '_'  + str(p_num) + '__' + str(n) + '_' + str(lambd) + '__' + str(amns_num)
 	dir_path = "c_codes/" + dir_name
