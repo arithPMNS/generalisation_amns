@@ -129,8 +129,10 @@ def compute_rhoUp_log2_and_nb_add_max(word_size, n, lambd, mont_phi, redIntPol_c
 	w = 1 + (n-1)*abs(lambd)
 	
 	rho_init = 2 * w * nm_inf
-	#rhoUp_log2 = ceil(log(rho_init, 2))
-	rhoUp_log2 = rho_init.nbits()
+	if rho_init.is_power_of(2):
+		rhoUp_log2 = log(rho_init, 2)
+	else:
+		rhoUp_log2 = rho_init.nbits()
 	rho = 1 << rhoUp_log2
 	tmp_phi = 2 * w * rho
 	
